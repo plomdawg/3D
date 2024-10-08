@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
 let scene, camera, renderer, controls;
 let currentModel;
 
@@ -12,7 +15,7 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById('model-container').appendChild(renderer.domElement);
 
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
 
     const light = new THREE.PointLight(0xffffff, 1, 100);
     light.position.set(0, 0, 10);
