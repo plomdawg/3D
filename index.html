@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Model Showcase</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script type="importmap"> { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/" } } </script>
-    </head>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
 <body>
-    <header>
-        <h1>3D Model Showcase</h1>
-    </header>
-    <main>
-        <div id="model-container"></div>
-        <div id="model-list">
-            <div class="model-thumbnail" data-model="models/tacobell.stl" data-color="0xff0000"></div>
-            <div class="model-thumbnail" data-model="models/tacobell.stl" data-color="0x00ff00"></div>
-            <div class="model-thumbnail" data-model="models/tacobell.stl" data-color="0x0000ff"></div>
-        </div>
-    </main>
+    <div id="model-viewer"></div>
+    <div id="model-list"></div>
+    <script type="module" src="viewer.js"></script>
+</body>
     <footer>
         <p>&copy; 2024 Avalon Parton (plomdawg). All rights reserved.</p>
     </footer>

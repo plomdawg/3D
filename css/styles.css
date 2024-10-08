@@ -20,7 +20,7 @@ main {
     padding: 2rem;
 }
 
-#model-container {
+#model-viewer {
     width: 100%;
     max-width: 800px;
     height: 600px;
@@ -37,17 +37,9 @@ main {
     gap: 1rem;
 }
 
-.model-thumbnail {
-    width: 150px;
-    height: 150px;
-    background-color: #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.model-thumbnail:hover {
-    transform: scale(1.05);
+#model-list button {
+    display: block;
+    margin-bottom: 5px;
 }
 
 footer {
