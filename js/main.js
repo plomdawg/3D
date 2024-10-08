@@ -1,85 +1,98 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
 
 let scene, camera, renderer, controls;
-let currentModel;
+const models = [
+    { id: 'tacobell', name: 'Taco Bell sauce holder', url: 'models/tacobell.3mf' },
+    { id: 'tacobell2', name: 'placeholder', url: 'models/tacobell.3mf' },
+    { id: 'tacobell3', name: 'placeholder', url: 'models/tacobell.3mf' },
+    // Add more models as needed
+];
 
 function init() {
+    // Create scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
+    scene.background = new THREE.Color(0xf0f0f0);
 
+    // Create camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
 
+    // Create renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.getElementById('model-container').appendChild(renderer.domElement);
+    document.getElementById('model-viewer').appendChild(renderer.domElement);
 
-    controls = new OrbitControls(camera, renderer.domElement);
-
-    const light = new THREE.PointLight(0xffffff, 1, 100);
-    light.position.set(0, 0, 10);
-    scene.add(light);
-
-    // Add ambient light
+    // Add lights
     const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(1, 1, 1);
+    scene.add(directionalLight);
 
+    // Add controls
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.25;
+    controls.enableZoom = true;
+
+    // Handle window resize
     window.addEventListener('resize', onWindowResize, false);
 
-    loadModel('models/tacobell.stl', 0xff0000);
+    // Create model list
+    createModelList();
+
+    // Load first model
+    loadModel(models[0].url);
+
+    // Start animation loop
+    animate();
 }
 
-function loadModel(path, color) {
-    const loader = new THREE.STLLoader();
-    loader.load(path, (geometry) => {
-        const material = new THREE.MeshPhongMaterial({ color: color, specular: 0x111111, shininess: 200 });
-        const mesh = new THREE.Mesh(geometry, material);
-        
-        if (currentModel) {
-            scene.remove(currentModel);
+function loadModel(url) {
+    const loader = new ThreeMFLoader();
+    loader.load(
+        url,
+        function (object) {
+            // Clear existing model
+            scene.clear();
+            // Add lights back
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            // Add new model
+            scene.add(object);
+            // Center the model
+            const box = new THREE.Box3().setFromObject(object);
+            const center = box.getCenter(new THREE.Vector3());
+            object.position.sub(center);
+            // Adjust camera and controls to fit model
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            camera.position.z = maxDim * 2;
+            controls.target.set(0, 0, 0);
+            controls.update();
+        },
+        function (xhr) {
+            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        function (error) {
+            console.log('An error happened', error);
         }
-        
-        scene.add(mesh);
-        currentModel = mesh;
-        
-        // Center the model
-        geometry.computeBoundingBox();
-        const center = geometry.boundingBox.getCenter(new THREE.Vector3());
-        mesh.position.sub(center);
-        
-        // Adjust camera and controls
-        fitCameraToObject(camera, mesh, 1.2);
-        controls.target.copy(mesh.position);
-        controls.update();
-    }, 
-    (xhr) => {
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    (error) => {
-        console.log('An error happened', error);
-    });
+    );
 }
 
-function fitCameraToObject(camera, object, offset) {
-    const boundingBox = new THREE.Box3();
-    boundingBox.setFromObject(object);
-    
-    const center = boundingBox.getCenter(new THREE.Vector3());
-    const size = boundingBox.getSize(new THREE.Vector3());
-    
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = camera.fov * (Math.PI / 180);
-    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-    cameraZ *= offset;
-    
-    camera.position.z = cameraZ;
-    
-    const minZ = boundingBox.min.z;
-    const cameraToFarEdge = minZ < 0 ? -minZ + cameraZ : cameraZ - minZ;
-    
-    camera.far = cameraToFarEdge * 3;
-    camera.updateProjectionMatrix();
+function createModelList() {
+    const modelList = document.getElementById('model-list');
+    models.forEach(model => {
+        const button = document.createElement('button');
+        button.textContent = model.name;
+        button.addEventListener('click', () => loadModel(model.url));
+        modelList.appendChild(button);
+    });
 }
 
 function onWindowResize() {
@@ -94,14 +107,5 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-init();
-animate();
-
-// Add event listeners for model selection
-document.getElementById('model-list').addEventListener('click', (event) => {
-    if (event.target.classList.contains('model-thumbnail')) {
-        const modelPath = event.target.dataset.model;
-        const modelColor = parseInt(event.target.dataset.color);
-        loadModel(modelPath, modelColor);
-    }
-});
+// Initialize the viewer when the page loads
+window.addEventListener('load', init);
